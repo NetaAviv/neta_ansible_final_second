@@ -4,7 +4,7 @@
     name: mariadb105-server
     state: present
 
-- name: Enable and Start MariaDB Service
+- name: Enable and Start MariaDB
   ansible.builtin.systemd:
     name: mariadb
     enabled: yes
