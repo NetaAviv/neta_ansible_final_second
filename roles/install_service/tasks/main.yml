@@ -1,0 +1,39 @@
+---
+- name: Check if the service is installed
+  ansible.builtin.shell: "rpm -q --qf '%{VERSION}' {{ hostvars[inventory_hostname].tags.Service }} || echo 'none'"
+  register: installed_version
+  ignore_errors: yes
+  changed_when: false
+
+- name: Debug installed version
+  ansible.builtin.debug:
+    msg: "Installed version: {{ installed_version.stdout }}"
+
+- name: Install or downgrade the service
+  ansible.builtin.shell: |
+    SERVICE="{{ hostvars[inventory_hostname].tags.Service }}"
+    VERSION="{{ hostvars[inventory_hostname].tags.Version }}"
+
+    if [[ "$VERSION" == "latest" ]]; then
+      dnf install -y "$SERVICE"
+    else
+      INSTALLED_VERSION=$(rpm -q --qf '%{VERSION}' "$SERVICE" 2>/dev/null || echo "none")
+      
+      if [[ "$INSTALLED_VERSION" == "none" ]]; then
+        dnf install -y "$SERVICE-$VERSION"
+      elif [[ "$INSTALLED_VERSION" > "$VERSION" ]]; then
+        dnf downgrade -y "$SERVICE-$VERSION"
+      else
+        echo "Version $VERSION is already installed"
+      fi
+    fi
+  args:
+    executable: /bin/bash
+  become: yes
+
+- name: Enable and start the service
+  ansible.builtin.systemd:
+    name: "{{ hostvars[inventory_hostname].tags.Service }}"
+    enabled: yes
+    state: started
+  become: yes
