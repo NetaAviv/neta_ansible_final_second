@@ -1,10 +1,10 @@
 ---
-- name: Install Nginx (Amazon Linux 2023)
+- name: Install Nginx 
   ansible.builtin.dnf:
     name: nginx
     state: present
 
-- name: Enable and Start Nginx Service
+- name: Enable and Start Nginx 
   ansible.builtin.systemd:
     name: nginx
     enabled: yes
