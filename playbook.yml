@@ -6,6 +6,7 @@
     - update_hostname
     - role: install_nginx
       when: "'nginx' in hostvars[inventory_hostname].tags.Service"
-    - role: install_mysql
+    - role: install_mysql #actually installs mariadb
       when: "'mysql' in hostvars[inventory_hostname].tags.Service"
+#   - install_service #we can also use this role i made instead but this will try to install mysql on the server and it cant because aws linux doent support it anymore 
     - configure_cron
