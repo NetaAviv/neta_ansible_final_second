@@ -1,11 +1,11 @@
 ---
-- name: Ensure cronie is installed (provides crontab)
+- name: Install cronie to use cron
   ansible.builtin.yum:
     name: cronie
     state: present
   become: yes
 
-- name: Start and enable the crond service
+- name: Start and enable crond service
   ansible.builtin.service:
     name: crond
     state: started
@@ -23,13 +23,9 @@
       elif hostvars[inventory_hostname].tags.Restart == "Saturday at midnight" %}0 0 * * 6{% 
       else %}none{% endif %}
 
-- name: Debug cron_time value
-  ansible.builtin.debug:
-    msg: "Calculated cron_time: {{ cron_time }}"
-
-- name: Ensure cron_time is valid before setting up cron job
+- name: Check that the cron time is valid
   ansible.builtin.fail:
-    msg: "Invalid cron_time, skipping cron job setup!"
+    msg: "Invalid time, skipping"
   when: cron_time == "none"
 
 - name: Set up a cron job for server restart
