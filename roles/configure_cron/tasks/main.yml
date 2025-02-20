@@ -1,0 +1,46 @@
+---
+- name: Ensure cronie is installed (provides crontab)
+  ansible.builtin.yum:
+    name: cronie
+    state: present
+  become: yes
+
+- name: Start and enable the crond service
+  ansible.builtin.service:
+    name: crond
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Debug restart_schedule value
+  ansible.builtin.debug:
+    msg: "Restart schedule tag value: {{ hostvars[inventory_hostname].tags.Restart }}"
+
+- name: Convert restart time to crontab format
+  ansible.builtin.set_fact:
+    cron_time: >-
+      {% if hostvars[inventory_hostname].tags.Restart == "Sunday at 6:00 am" %}0 6 * * 0{% 
+      elif hostvars[inventory_hostname].tags.Restart == "Saturday at midnight" %}0 0 * * 6{% 
+      else %}none{% endif %}
+
+- name: Debug cron_time value
+  ansible.builtin.debug:
+    msg: "Calculated cron_time: {{ cron_time }}"
+
+- name: Ensure cron_time is valid before setting up cron job
+  ansible.builtin.fail:
+    msg: "Invalid cron_time, skipping cron job setup!"
+  when: cron_time == "none"
+
+- name: Set up a cron job for server restart
+  ansible.builtin.cron:
+    name: "Restart server based on tag"
+    job: "/sbin/shutdown -r now"
+    state: present
+    minute: "{{ cron_time.split()[0] }}"
+    hour: "{{ cron_time.split()[1] }}"
+    day: "{{ cron_time.split()[2] }}"
+    month: "{{ cron_time.split()[3] }}"
+    weekday: "{{ cron_time.split()[4] }}"
+  become: yes
+  when: cron_time != "none"

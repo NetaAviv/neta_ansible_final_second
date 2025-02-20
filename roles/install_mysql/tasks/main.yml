@@ -1,0 +1,11 @@
+---
+- name: Install MariaDB (MySQL Replacement)
+  ansible.builtin.dnf:
+    name: mariadb105-server
+    state: present
+
+- name: Enable and Start MariaDB Service
+  ansible.builtin.systemd:
+    name: mariadb
+    enabled: yes
+    state: started

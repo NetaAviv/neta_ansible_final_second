@@ -1,0 +1,13 @@
+plugin: amazon.aws.aws_ec2
+regions:
+  - us-east-1
+filters:
+  tag:Managed: true
+  tag:Owner: netaaviv
+keyed_groups:
+  - prefix: tag
+    key: tags
+hostnames:
+  - ip-address  # Make sure this is correct
+compose:
+  ansible_host: public_ip_address  # Forces Ansible to use public IP

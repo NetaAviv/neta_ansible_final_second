@@ -1,0 +1,11 @@
+- hosts: tag_Managed_true
+  become: true
+  gather_facts: true
+
+  roles:
+    - update_hostname
+    - role: install_nginx
+      when: "'nginx' in hostvars[inventory_hostname].tags.Service"
+    - role: install_mysql
+      when: "'mysql' in hostvars[inventory_hostname].tags.Service"
+    - configure_cron
